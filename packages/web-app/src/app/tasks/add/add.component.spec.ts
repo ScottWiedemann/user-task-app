@@ -102,9 +102,9 @@ describe('AddComponent', () => {
     );
     await addButton.click();
     fixture.detectChanges();
-    expect(component.onSubmit).toBeCalledTimes(1);
-    expect(storageService.updateTaskItem).toBeCalledTimes(1);
-    expect(storageService.updateTaskItem).toBeCalledWith(
+    expect(component.onSubmit).toHaveBeenCalledTimes(1);
+    expect(storageService.updateTaskItem).toHaveBeenCalledTimes(1);
+    expect(storageService.updateTaskItem).toHaveBeenCalledWith(
       expect.objectContaining({
         isArchived: false,
         title: 'Adding a test task',

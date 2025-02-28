@@ -7,10 +7,10 @@ import { Router } from '@angular/router';
 import { StorageService } from '../../storage/storage.service';
 
 @Component({
-    selector: 'take-home-list-component',
-    templateUrl: './list.component.html',
-    styleUrls: ['./list.component.scss'],
-    standalone: false
+  selector: 'take-home-list-component',
+  templateUrl: './list.component.html',
+  styleUrls: ['./list.component.scss'],
+  standalone: false,
 })
 export class ListComponent {
   constructor(
@@ -35,8 +35,7 @@ export class ListComponent {
   }
 
   onAddTask(): void {
-    // TODO: navigate to add task
-    throw new Error('Not implemented');
+    this.router.navigate(['add']);
   }
 
   private getTaskList(): void {
