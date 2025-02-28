@@ -1,4 +1,5 @@
 import { TasksService } from './tasks.service';
+import { faker } from '@faker-js/faker';
 import { TestBed } from '@angular/core/testing';
 import {
   HttpClientTestingModule,
@@ -102,7 +103,14 @@ describe('TasksService', () => {
       expect(service.tasks.length).toEqual(1);
     });
 
-    it.todo('should filter task by scheduledDate key');
+    it('should filter task by scheduledDate key', () => {
+      service.tasks = [
+        generateTask({ scheduledDate: new Date() }),
+        generateTask({ scheduledDate: faker.date.recent({ days: 3 }) }),
+      ];
+      service.filterTask('scheduledDate');
+      expect(service.tasks.length).toEqual(1);
+    });
   });
 
   describe('searchTask', () => {

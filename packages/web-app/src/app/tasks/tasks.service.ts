@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { Task } from '@take-home/shared';
 import { StorageService } from '../storage/storage.service';
 
+import { isToday } from 'date-fns';
+
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   tasks: Task[] = [];
@@ -29,11 +31,11 @@ export class TasksService {
         this.tasks = this.tasks.filter((task) => !task.isArchived);
         break;
       case 'priority':
-        // TODO: add fitler for taks with High Priority
-        throw new Error('Not implemented');
+        this.tasks = this.tasks.filter((task) => task.priority == 'HIGH');
+        break;
       case 'scheduledDate':
-        // TODO: add fitler for tasks Due Today
-        throw new Error('Not implemented');
+        this.tasks = this.tasks.filter((task) => isToday(task.scheduledDate));
+        break;
       case 'completed':
         this.tasks = this.tasks.filter((task) => !task.completed);
     }
