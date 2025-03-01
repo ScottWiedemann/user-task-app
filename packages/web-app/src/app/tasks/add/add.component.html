@@ -21,6 +21,22 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <mat-form-field>
+      <mat-label>Scheduled Date</mat-label>
+      <input
+        matInput
+        [min]="minDate"
+        [max]="maxDate"
+        formControlName="scheduledDate"
+        [matDatepicker]="picker"
+      />
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
     <div class="action-button-row">
       <button
         data-testid="add-task"

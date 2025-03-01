@@ -3,6 +3,7 @@ import { BrowserModule, By } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { StorageService } from '../../storage/storage.service';
 import { AddComponent } from './add.component';
 import { MatInputModule } from '@angular/material/input';
@@ -12,6 +13,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { addDays, subDays } from 'date-fns';
+import { MatNativeDateModule } from '@angular/material/core';
 
 class MockStorageService {
   updateTaskItem(): void {
@@ -34,6 +37,7 @@ describe('AddComponent', () => {
         FormsModule,
         ReactiveFormsModule,
         MatButtonModule,
+        MatDatepickerModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
@@ -89,6 +93,7 @@ describe('AddComponent', () => {
   });
 
   it(`should create a new task for a valid submission and navigate home`, async () => {
+    const scheduledDate = new Date();
     jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     jest.spyOn(component, 'onSubmit');
     jest.spyOn(storageService, 'updateTaskItem').mockResolvedValue();
@@ -96,6 +101,7 @@ describe('AddComponent', () => {
     component['addTaskForm'].controls['description'].setValue(
       'This task should be added to the list',
     );
+    component['addTaskForm'].controls['scheduledDate'].setValue(scheduledDate);
     fixture.detectChanges();
     const addButton = await loader.getHarness(
       MatButtonHarness.with({ selector: '[data-testid="add-task"]' }),
@@ -109,8 +115,42 @@ describe('AddComponent', () => {
         isArchived: false,
         title: 'Adding a test task',
         description: 'This task should be added to the list',
+        scheduledDate,
       }),
     );
     expect(router.navigateByUrl).toHaveBeenCalledWith('/');
+  });
+
+  it(`should prevent adding task without scheduledDate within 7 days of today`, async () => {
+    const addButton = await loader.getHarness(
+      MatButtonHarness.with({ selector: '[data-testid="add-task"]' }),
+    );
+    const scheduledDate = new Date();
+    component['addTaskForm'].controls['title'].setValue(
+      'This is a valid title',
+    );
+    expect(await addButton.isDisabled()).toBeFalsy();
+
+    component['addTaskForm'].controls['scheduledDate'].setValue(
+      addDays(scheduledDate, 10),
+    );
+    fixture.detectChanges();
+    expect(await addButton.isDisabled()).toBeTruthy();
+
+    component['addTaskForm'].controls['scheduledDate'].setValue(
+      subDays(scheduledDate, 1),
+    );
+    fixture.detectChanges();
+    expect(await addButton.isDisabled()).toBeTruthy();
+
+    component['addTaskForm'].controls['scheduledDate'].setValue(scheduledDate);
+    fixture.detectChanges();
+    expect(await addButton.isDisabled()).toBeFalsy();
+
+    component['addTaskForm'].controls['scheduledDate'].setValue(
+      addDays(scheduledDate, 7),
+    );
+    fixture.detectChanges();
+    expect(await addButton.isDisabled()).toBeFalsy();
   });
 });
