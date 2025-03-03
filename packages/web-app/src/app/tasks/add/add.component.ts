@@ -35,19 +35,19 @@ export class AddComponent {
 
   constructor(private storageService: StorageService, private router: Router) {}
 
-  onSubmit() {
+  async onSubmit(): Promise<void> {
     const newTask: Task = {
       ...this.addTaskForm.getRawValue(),
       uuid: faker.string.uuid(),
       isArchived: false,
     };
 
-    this.storageService.updateTaskItem(newTask);
+    await this.storageService.updateTaskItem(newTask);
 
-    this.router.navigateByUrl('/');
+    await this.router.navigateByUrl('/');
   }
 
-  onCancel(): void {
-    this.router.navigateByUrl('/');
+  async onCancel(): Promise<void> {
+    await this.router.navigateByUrl('/');
   }
 }

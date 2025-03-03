@@ -4,10 +4,10 @@ import { TasksService } from '../tasks.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
-    selector: 'take-home-search-component',
-    templateUrl: './search.component.html',
-    styleUrls: ['./search.component.scss'],
-    standalone: false
+  selector: 'take-home-search-component',
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.scss'],
+  standalone: false,
 })
 export class SearchComponent {
   protected searchForm: FormGroup = new FormGroup({

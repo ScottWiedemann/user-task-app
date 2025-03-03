@@ -14,27 +14,26 @@ export class StorageService {
 
   constructor() {
     this.restoreIndexedDB();
-    // this.resetIndexedDB();
   }
 
   // Create / Update
-  async addTaskItem(item: Task) {
+  async addTaskItem(item: Task): Promise<void> {
     await this.addTask(item);
   }
 
-  async updateTaskItem(item: Task) {
+  async updateTaskItem(item: Task): Promise<void> {
     await this.updateTask(item);
   }
 
   // Read
-  getTask(id: string | null): Promise<Task> {
+  async getTask(id: string | null): Promise<Task> {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.get(`${this.tasks}`, id ? id : '');
     });
   }
 
-  getTasks(): Promise<Task[]> {
+  async getTasks(): Promise<Task[]> {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.getAll(`${this.tasks}`);
@@ -50,43 +49,43 @@ export class StorageService {
     );
   }
 
-  getItems<T>(storeName: string): Promise<T[]> {
+  async getItems<T>(storeName: string): Promise<T[]> {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.getAll(storeName);
     });
   }
 
-  async resetIndexedDB() {
+  async resetIndexedDB(): Promise<void> {
     const tasks = this.clearTasks();
     await Promise.allSettled([tasks]).then(() => {
       this.restoreIndexedDB();
     });
   }
 
-  private addTask(item: Task) {
+  private async addTask(item: Task) {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.add(this.tasks, item, item.uuid);
     });
   }
 
-  private updateTask(item: Task) {
+  private async updateTask(item: Task) {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.put(this.tasks, item, item.uuid);
     });
   }
 
-  private clearTasks() {
+  private async clearTasks() {
     const dbPromise = openDB(`${this.dbName}`, this.dbVersion);
     return dbPromise.then((db) => {
       return db.clear(`${this.tasks}`);
     });
   }
 
-  private restoreIndexedDB(tasks = `${this.tasks}`) {
-    openDB(`${this.dbName}`, this.dbVersion, {
+  private async restoreIndexedDB(tasks = `${this.tasks}`) {
+    await openDB(`${this.dbName}`, this.dbVersion, {
       upgrade(db) {
         db.createObjectStore(tasks).createIndex('uuid', 'uuid', {
           unique: true,

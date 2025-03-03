@@ -44,13 +44,13 @@ export class TasksService {
     }
   }
 
-  searchTask(search: string): void {
+  async searchTask(search: string): Promise<void> {
     const fuse = this.fuzzyfinder.getFuse();
 
     if (search && fuse) {
       this.tasks = fuse.search(search).map((result) => result.item);
     } else {
-      this.getTasksFromStorage();
+      await this.getTasksFromStorage();
     }
   }
 }
