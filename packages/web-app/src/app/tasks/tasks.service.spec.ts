@@ -1,5 +1,4 @@
 import { TasksService } from './tasks.service';
-import { faker } from '@faker-js/faker';
 import { TestBed } from '@angular/core/testing';
 import {
   HttpClientTestingModule,
@@ -7,6 +6,9 @@ import {
 } from '@angular/common/http/testing';
 import { StorageService } from '../storage/storage.service';
 import { Task, TaskPriority, generateTask } from '@take-home/shared';
+import { FuzzyFinderService } from './fuzzy-finder/fuzzy-finder.service';
+import Fuse from 'fuse.js';
+import { subDays } from 'date-fns';
 
 class MockStorageService {
   getTasks(): Promise<Task[]> {
@@ -18,6 +20,7 @@ describe('TasksService', () => {
   let service: TasksService;
   let storageService: StorageService;
   let httpTestingController: HttpTestingController;
+  let fuzzyFinder: FuzzyFinderService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,6 +34,7 @@ describe('TasksService', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject(TasksService);
     storageService = TestBed.inject(StorageService);
+    fuzzyFinder = TestBed.inject(FuzzyFinderService);
   });
 
   describe('getTasksFromApi', () => {
@@ -104,9 +108,10 @@ describe('TasksService', () => {
     });
 
     it('should filter task by scheduledDate key', () => {
+      const today = new Date();
       service.tasks = [
-        generateTask({ scheduledDate: new Date() }),
-        generateTask({ scheduledDate: faker.date.recent({ days: 3 }) }),
+        generateTask({ scheduledDate: today }),
+        generateTask({ scheduledDate: subDays(today, 1) }),
       ];
       service.filterTask('scheduledDate');
       expect(service.tasks.length).toEqual(1);
@@ -114,11 +119,23 @@ describe('TasksService', () => {
   });
 
   describe('searchTask', () => {
+    const fuseMock = (tasks: Task[]) => {
+      return {
+        search: jest.fn((_: string) => {
+          return tasks.map((task: Task) => {
+            return { item: task };
+          });
+        }),
+      } as unknown as Fuse<Task>;
+    };
+
     it('should search task list for title with search term', () => {
+      const task = generateTask({ title: 'Take home assignment' });
       service.tasks = [
-        generateTask({ title: 'Take home assignment' }),
+        task,
         generateTask({ title: 'Thank you for your time' }),
       ];
+      jest.spyOn(fuzzyFinder, 'getFuse').mockReturnValue(fuseMock([task]));
       service.searchTask('home');
       expect(service.tasks.length).toEqual(1);
     });
@@ -128,10 +145,20 @@ describe('TasksService', () => {
         generateTask({ title: 'Take home assignment' }),
         generateTask({ title: 'Thank you for your time' }),
       ];
+      jest.spyOn(fuzzyFinder, 'getFuse').mockReturnValue(fuseMock([]));
       service.searchTask('');
       expect(service.tasks.length).toEqual(2);
     });
 
-    it.todo('should search task list for a fuzzy match on title');
+    it('should search task list for a fuzzy match on title', () => {
+      const task = generateTask({ title: 'Take home assignment' });
+      service.tasks = [
+        task,
+        generateTask({ title: 'Thank you for your time' }),
+      ];
+      jest.spyOn(fuzzyFinder, 'getFuse').mockReturnValue(fuseMock([task]));
+      service.searchTask('hoem');
+      expect(service.tasks.length).toEqual(1);
+    });
   });
 });

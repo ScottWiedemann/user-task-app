@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Task } from '@take-home/shared';
 import { StorageService } from '../storage/storage.service';
+import { FuzzyFinderService } from './fuzzy-finder/fuzzy-finder.service';
 
 import { isToday } from 'date-fns';
 
@@ -13,6 +14,7 @@ export class TasksService {
   constructor(
     private http: HttpClient,
     private storageService: StorageService,
+    private fuzzyfinder: FuzzyFinderService,
   ) {}
 
   getTasksFromApi(): Observable<Task[]> {
@@ -22,6 +24,7 @@ export class TasksService {
 
   async getTasksFromStorage(): Promise<void> {
     this.tasks = await this.storageService.getTasks();
+    this.fuzzyfinder.updateTasks(this.tasks);
     this.filterTask('isArchived');
   }
 
@@ -42,8 +45,10 @@ export class TasksService {
   }
 
   searchTask(search: string): void {
-    if (search) {
-      this.tasks = this.tasks.filter((task) => task.title.includes(search));
+    const fuse = this.fuzzyfinder.getFuse();
+
+    if (search && fuse) {
+      this.tasks = fuse.search(search).map((result) => result.item);
     } else {
       this.getTasksFromStorage();
     }

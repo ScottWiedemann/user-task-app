@@ -14,7 +14,6 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { addDays, subDays } from 'date-fns';
-import { MatNativeDateModule } from '@angular/material/core';
 
 class MockStorageService {
   updateTaskItem(): void {
