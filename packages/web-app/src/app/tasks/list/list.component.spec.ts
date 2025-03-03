@@ -26,21 +26,21 @@ const fakeTasks: Task[] = [
 ];
 
 class MockTasksService {
-  tasks: Task[] = fakeTasks;
+  tasks: Task[] = [...fakeTasks];
   getTasksFromApi(): Observable<Task[]> {
-    return of(fakeTasks);
+    return of(this.tasks);
   }
   getTasksFromStorage(): Promise<Task[]> {
-    return Promise.resolve(fakeTasks);
+    return Promise.resolve(this.tasks);
   }
   filterTask(): void {
-    return;
+    this.tasks = this.tasks.filter((task) => !task.isArchived);
   }
 }
 
 class MockStorageService {
   getTasks(): Promise<Task[]> {
-    return Promise.resolve(fakeTasks);
+    return Promise.resolve([...fakeTasks]);
   }
   updateTaskItem(): void {
     return;
@@ -79,6 +79,7 @@ describe('ListComponent', () => {
   beforeEach(() => {
     router = TestBed.inject(Router);
     tasksService = TestBed.inject(TasksService);
+    tasksService.tasks = fakeTasks.map((task) => ({ ...task }));
     fixture = TestBed.createComponent(ListComponent);
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -142,5 +143,19 @@ describe('ListComponent', () => {
     expect(tasksService.tasks[0].isArchived).toBe(true);
   });
 
-  it.todo(`should not display archived tasks after deleting them`);
+  it(`should not display archived tasks after deleting them`, async () => {
+    const taskLists = fixture.debugElement.queryAll(By.css('mat-card'));
+    expect(taskLists.length).toEqual(fakeTasks.length);
+    jest.spyOn(component, 'onDeleteTask');
+    const deleteButton = await loader.getHarness(
+      MatButtonHarness.with({ selector: '[data-testid="delete-task"]' }),
+    );
+    await deleteButton.click();
+    deleteButton.click();
+    tasksService.filterTask('isArchived');
+    fixture.detectChanges();
+    expect(component.onDeleteTask).toHaveBeenCalledTimes(1);
+    const updateTaskList = fixture.debugElement.queryAll(By.css('mat-card'));
+    expect(updateTaskList.length).toEqual(fakeTasks.length - 1);
+  });
 });

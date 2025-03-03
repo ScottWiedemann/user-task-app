@@ -32,6 +32,7 @@
             <mat-icon>done</mat-icon>Done
           </button>
           <button
+            *ngIf="!item.isArchived"
             data-testid="delete-task"
             color="warn"
             mat-flat-button
